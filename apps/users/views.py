@@ -2,11 +2,15 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
+from django.contrib.sessions.models import Session
+from django.utils import timezone
+from rest_framework.authtoken.views import ObtainAuthToken
 from django.contrib.auth import authenticate, get_user_model
+
 
 from .serializers import UserSerializer
 
-class SignIn(APIView):
+class SignIn(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -14,6 +18,10 @@ class SignIn(APIView):
         user = authenticate(username=username, password=password)
         if user:
             if user.is_active:
+                # Actualiza el campo last_login
+                user.last_login = timezone.now()
+                user.save()
+                
                 token, created = Token.objects.get_or_create(user=user)
                 user_serializer = UserSerializer(user)
                 return Response({
@@ -26,7 +34,7 @@ class SignIn(APIView):
         else:
             return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
-class SignUp(APIView):
+class SignUp(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -39,3 +47,24 @@ class SignUp(APIView):
             serializer.save()
             return Response({'mensaje': 'Registro exitoso'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Logout(ObtainAuthToken):
+    def get(self, request, *args, **kwargs):
+        try:
+            token_key = request.GET.get('token')
+            token = Token.objects.filter(key=token_key).first()
+            if token:
+                user = token.user
+                # Eliminar todas las sesiones activas para el usuario
+                all_sessions = Session.objects.filter(expire_date__gte=timezone.now(), session_key__contains=user.username)
+                if all_sessions.exists():
+                    for session in all_sessions:
+                        session.delete()
+                # Eliminar el token de autenticación
+                token.delete()
+                return Response({'message': 'Cierre de sesión exitoso'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'No se encontró un token válido'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

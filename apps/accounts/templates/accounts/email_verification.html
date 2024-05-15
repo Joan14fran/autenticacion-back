@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification</title>
+    <style>
+        .email-body {
+            background-color: #fff;
+            border: 1px solid #dfdfdf;
+            box-shadow: 0px 0px 3px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 3px;
+            position: relative;
+          }
+          
+          .email-body h3 {
+            font-size: 25px;
+            font-weight: 300;
+            color: #000;
+          }
+          
+          .email-body h4 {
+            font-size: 20px;
+            font-weight: 300;
+            color: #000;
+          }
+          
+          .email-body p {
+            margin-bottom: 30px;
+            font-weight: 300;
+            color: #575757;
+            line-height: 24px;
+          }
+          
+          .email-body p strong {
+            font-weight: bold;
+          }
+          
+          .email-content {
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 1px;
+          }
+          
+          .email-content > p {
+            color: #575757;
+            font-weight: 300;
+            font-size: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            margin-top: 30px;
+          }
+          
+          .email-wrapper {
+            background-color: #f9f9f9;
+            min-height: 100vh;
+            width: 100%;
+            font-family: sans-serif;
+            letter-spacing: -0.2px;
+            padding-bottom: 50px;
+            padding-top: 50px;
+          }
+          
+          .email-body-logo {
+            display: block;
+            padding-bottom: 30px;
+            padding-top: 20px;
+          }
+          
+          .email-body-logo img {
+            width: 30px;
+            display: inline;
+            vertical-align: middle;
+          }
+          
+          .email-body-logo span {
+            font-weight: 300;
+            color: #999;
+            margin-left: 5px;
+            display: inline;
+            vertical-align: middle;
+          }
+          
+          .email-button {
+            margin-top: 30px;
+            display: block;
+            width: 100%;
+            text-decoration: unset;
+            color: #fff;
+            background-color: #0366d6;
+            padding: 20px;
+            font-weight: 500;
+            text-align: center;
+            box-sizing: border-box;
+            border-radius: 3px;
+            font-size: 18px;
+          }
+
+          #numero-div {
+            width: 97%; /* Ocupa todo el ancho disponible */
+            height: 50px; /* Ajusta la altura según tus necesidades */
+            background-color: rgba(194, 194, 194, 0.5); /* Color gris con opacidad 0.5 */
+            border: 1px solid #ccc;
+            text-align: center;
+            padding: 10px;
+          }
+          
+          #numero-div span {
+            font-size: 36px;
+            font-weight: bold;
+            color: rgba(41, 41, 41, 0.5); /* Color gris con opacidad 0.5 */
+          }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="email-content">
+        
+          <div class="email-body">
+            
+            <h3>Bienvenido al sistema de Autenticacion</h3>
+            <p>Hola {{ user.first_name }},</p>
+            <p>Gracias por registrarte en <strong>{{ current_site }}</strong>. Verifique su correo electrónico con siguiente codigo (OTP) de un solo uso:</p>
+            <div id="numero-div">
+                <span>{{ otp_code }}</span>
+              </div>
+          </div>
+        
+          <p>El correo se envía automáticamente desde el sistema Auth Com-Co; no responda a este correo electrónico.</p>
+          
+          <p>&copy; 2024 Base.vn. All rights reserved.</p>
+        
+        </div>
+      </div>      
+</body>
+</html>

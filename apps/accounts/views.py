@@ -9,6 +9,7 @@ from .models import OneTimePasssword, User
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # Create your views here.
 
@@ -55,13 +56,11 @@ class LoginUserView(GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class TestAuthenticationView(GenericAPIView):
-    permission_classes=[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request):
-
-        data={
-            'msg':'its works'
-        }
+        data = {'msg': 'Token is valid'}
         return Response(data, status=status.HTTP_200_OK)
 
 class PasswordResetRequestView(GenericAPIView):
@@ -97,6 +96,7 @@ class SetNewPassword(GenericAPIView):
 class LogoutUserView(GenericAPIView):
     serializer_class=LogoutUserSerializer
     permission_classes=[IsAuthenticated]
+    
     
     def post(self, request):
         serializer = self.serializer_class(data=request.data)

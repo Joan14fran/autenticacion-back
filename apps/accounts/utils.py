@@ -1,28 +1,43 @@
 import random
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 from .models import User, OneTimePasssword
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.conf import settings
+import secrets
 
 def generateOtp():
-    otp=""
-    for i in range(6):
-        otp +=str(random.randint(1,9))
+    otp = ''.join(secrets.choice('0123456789') for _ in range(6))
     return otp
 
 
 def send_code_to_user(email):
-    Subject="One time passcode for Emial verification"
-    otp_code=generateOtp()
-    print(otp_code)
-    user=User.objects.get(email=email)
-    current_site="myAuth.com"
-    email_body=f"Hi {user.first_name} thanks for signing up on {current_site} please verify your email with the \n one time passcode {otp_code}"
-    form_email=settings.EMAIL_HOST
+    subject = "One time passcode for Email verification"
+    otp_code = generateOtp()
+    user = User.objects.get(email=email)
+    current_site = "Sistema de Autenticacion"
+
+    # Renderizar la plantilla HTML para el correo electrónico
+    email_html = render_to_string('accounts/email_verification.html', {
+        'user': user,
+        'current_site': current_site,
+        'otp_code': otp_code
+    })
+
+    # Crear el correo electrónico
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=strip_tags(email_html),  # Cuerpo en texto plano para clientes de correo que no admiten HTML
+        from_email=settings.EMAIL_HOST,
+        to=[email]
+    )
+    email.attach_alternative(email_html, "text/html")  # Adjuntar la versión HTML del correo electrónico
+
+    # Guardar el código OTP en la base de datos
+    OneTimePasssword.objects.create(user=user, code=otp_code)
     
-    OneTimePasssword.objects.create(user=user, code= otp_code)
-    
-    d_email=EmailMessage(subject=Subject, body=email_body, from_email=form_email, to=[email])
-    d_email.send(fail_silently=True)
+    # Enviar el correo electrónico
+    email.send(fail_silently=True)
     
 def send_normal_email(data):
     email=EmailMessage(

@@ -12,7 +12,7 @@ def generateOtp():
 
 
 def send_code_to_user(email):
-    subject = "One time passcode for Email verification"
+    subject = "Código de acceso de un solo uso para verificación de correo electrónico"
     otp_code = generateOtp()
     user = User.objects.get(email=email)
     current_site = "Sistema de Autenticacion"
@@ -40,11 +40,13 @@ def send_code_to_user(email):
     email.send(fail_silently=True)
     
 def send_normal_email(data):
-    email=EmailMessage(
+    email = EmailMultiAlternatives(
         subject=data['email_subject'],
-        body=data['email_body'],
+        body=strip_tags(data['email_body']),  # Cuerpo en texto plano para clientes de correo que no admiten HTML
         from_email=settings.EMAIL_HOST_USER,
         to=[data['to_email']]
     )
-    email.send()
+    email.attach_alternative(data['email_body'], "text/html")  # Adjuntar la versión HTML del correo electrónico
+
+    email.send(fail_silently=True)
     

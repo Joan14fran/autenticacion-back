@@ -9,6 +9,8 @@ from django.utils.encoding import smart_str, smart_bytes, force_str
 from django.urls import reverse
 from .utils import send_normal_email
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 
 
@@ -70,26 +72,29 @@ class LoginSerializer(serializers.ModelSerializer):
         }
     
 class PasswordResetRequestSerializer(serializers.Serializer):
-    email=serializers.EmailField(max_length=255)
-    
+    email = serializers.EmailField(max_length=255)
+
     class Meta:
-        fields=['email']
-        
+        fields = ['email']
+
     def validate(self, attrs):
-        email=attrs.get('email')
+        email = attrs.get('email')
         if User.objects.filter(email=email).exists():
-            user=User.objects.get(email=email)
-            uidb64=urlsafe_base64_encode(smart_bytes(user.id))
-            token=PasswordResetTokenGenerator().make_token(user)
-            request=self.context.get('request')
-            site_domain=get_current_site(request).domain
-            relative_link =reverse('reset-password-confirm', kwargs={'uidb64':uidb64, 'token':token})
-            abslink=f"http://{site_domain}{relative_link}"
-            email_body=f"Hi {user.first_name} use the link below to reset your password {abslink}"
-            data={
-                'email_body':email_body, 
-                'email_subject':"Reset your Password", 
-                'to_email':user.email
+            user = User.objects.get(email=email)
+            uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
+            token = PasswordResetTokenGenerator().make_token(user)
+            request = self.context.get('request')
+            site_domain = "localhost:4200"
+            relative_link = reverse('reset-password-confirm', kwargs={'uidb64': uidb64, 'token': token})
+            abslink = f"http://{site_domain}{relative_link}"
+            email_body = render_to_string('accounts/password_reset_link.html', {
+                'user': user,
+                'abslink': abslink
+            })
+            data = {
+                'email_body': email_body,
+                'email_subject': "Instrucciones para restablecer la contraseña de la cuenta de Sistema De Autenticaicon",
+                'to_email': user.email
             }
             send_normal_email(data)
         return super().validate(attrs)
